@@ -90,7 +90,7 @@ function MessageHandler(id, message)
                 username = message["username"] 
                 password = message["password"]
                 account = FindAccount("username", username)
-                if account["password"] ~= password then
+                if account and account["password"] ~= password then
                     account = nil
                 end
             elseif message["accountID"] then
