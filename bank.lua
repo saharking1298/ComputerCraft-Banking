@@ -126,6 +126,7 @@ function CreateBankAccount()
         ["credits"] = 100
     }
     Users[accountID] = user
+    Drive.setDiskLabel(username)
     SaveUsersList()
     WriteAccountToDisk(accountID)
     print("Account created successfully!")
