@@ -35,15 +35,18 @@ function WriteAccountToDisk(accountID)
     io.output(io.stdout)
 end
 
-function CreateBankAccount()
+function BankAccountAuth(mode)
     local response, username, password, success, user
-    while success ~= true do
+    if not (mode == "login" or mode == "register") then
+        error("Invalid account auth mode")
+    end
+    while success ~= true and Drive.isDiskPresent() do
         Utils.WriteToScreen("terminal", "Please choose a username:", true)
         username = io.read()
         Utils.WriteToScreen("terminal", "Please choose a password:")
         password = io.read()
         rednet.send(HostID, {
-            ["action"] = "register",
+            ["action"] = mode,
             ["username"] = username,
             ["password"] = password
         })
@@ -57,23 +60,29 @@ function CreateBankAccount()
     user = response["account"]
     Drive.setDiskLabel(username)
     WriteAccountToDisk(user["id"])
-    print("Account created successfully!")
+    if mode == "register" then
+        Utils.WriteToScreen("terminal", "Account created successfully!")
+    else
+        Utils.WriteToScreen("terminal", "Logged into account successfully!")
+    end
     sleep(1)
     return user
 end
 
-function AccountCreationDialog ()
+function AccountLoginDialog ()
     -- This function is called if the player needs to create an account.
     local choice, user
     Utils.WriteToScreen("monitor", "Disk setup required. \nPlease use the computer below.", true)
-    choice = Utils.YesNoDialog("Disk is not registered. \nDo you want to create an account (y/n)?")
-    if choice then
-        if Drive.isDiskPresent() then
-            user = CreateBankAccount()
-        else
-            print("Disk in not connected!")
-            sleep(1)
-        end
+    Utils.WriteToScreen("terminal", "Disk is not registered. \nWhat do you want to do now?", true)
+    Utils.WriteToScreen("terminal", "1. Log into an existing account \n2. Create a new account \n3. Eject drive")
+    choice = string.sub(io.read(), 1, 1)
+    if not Drive.isDiskPresent() and (choice == "1" or choice == "2") then
+        print("Disk in not connected!")
+        sleep(1)
+    elseif choice == "1" then
+        BankAccountAuth("login")
+    elseif choice == "2" then
+        BankAccountAuth("register")
     else
         Drive.ejectDisk()
     end
@@ -107,7 +116,7 @@ function Mainloop ()
     WaitForDiskInsert()
     accountID = ReadDisk()
     if accountID == nil then
-        user = AccountCreationDialog()
+        user = AccountLoginDialog()
     else
         rednet.send(HostID, {
             ["action"] = "login",
@@ -117,7 +126,7 @@ function Mainloop ()
         if response["success"] == true then
             user = response["account"]
         else
-            user = AccountCreationDialog()
+            user = AccountLoginDialog()
         end
     end
     if user ~= nil then
