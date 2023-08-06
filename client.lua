@@ -28,11 +28,7 @@ function WaitForDiskInsert ()
 end
 
 function WriteAccountToDisk(accountID)
-    local file = io.open(GetAccountFilePath(), "w")
-    io.output(file)
-    io.write(accountID)
-    io.close(file)
-    io.output(io.stdout)
+    Utils.WriteFile(GetAccountFilePath(), accountID)
 end
 
 function BankAccountAuth(mode)

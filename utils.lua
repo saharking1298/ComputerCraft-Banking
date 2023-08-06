@@ -34,6 +34,16 @@ function utils.ReadFile(filePath)
 	return content
 end
 
+function utils.WriteFile(filePath, content)
+	local file
+	file = io.open(filePath, "w")
+	io.output(file)
+	io.write(content)
+	io.close(file)
+	io.output(io.stdout)
+	return content
+end
+
 function utils.GenerateToken(tokenLen)
     local chars, id, rand
     chars = "abcdefghijklmnopqrstuvwxyz0123456789"

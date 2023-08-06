@@ -3,22 +3,11 @@ JSON = require("json")
 Users = {}
 
 function SaveUsersList ()
-    local data = JSON.encode(Users)
-    local file = io.open("BankDB.json", "w")
-    io.output(file)
-    io.write(data)
-    io.close(file)
-    io.output(io.stdout)
+    Utils.WriteFile("BankDB.json", JSON.encode(Users))
 end
 
 function LoadUsersList ()
-    local file, data
-    file = io.open("BankDB.json", "r")
-    io.input(file)
-    data = JSON.decode(io.read())
-    io.close(file)
-    io.input(io.stdin)
-    return data
+    return JSON.decode(Utils.ReadFile("BankDB.json"))
 end
 
 function HostBankProtocol()
