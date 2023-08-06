@@ -69,7 +69,7 @@ end
 
 function YesNoDialog (prompt)
     local input
-    WriteToScreen(1, prompt, true)
+    WriteToScreen("terminal", prompt, true)
     input = io.read()
     return string.sub(input, 1, 1) == "y"
 end
@@ -117,26 +117,30 @@ function ReadAccountFromDisk ()
 end
 
 function CreateBankAccount()
-    local username, accountID
-    WriteToScreen(1, "Please choose a username:", true)
+    local user, username, accountID
+    WriteToScreen("terminal", "Please choose a username:", true)
     username = io.read()
     accountID = GenerateAccountID()
-    Users[accountID] = username -- {username, credits}
+    user = {
+        ["username"] = username,
+        ["credits"] = 100
+    }
+    Users[accountID] = user
     SaveUsersList()
     WriteAccountToDisk(accountID)
     print("Account created successfully!")
     sleep(1)
-    return username
+    return user
 end
 
 function AccountCreationDialog ()
     -- This function is called if the player needs to create an account.
-    local choice, username
+    local choice, user
     WriteToScreen("monitor", "Disk setup required. \nPlease use the computer below.", true)
     choice = YesNoDialog("Disk is not registered. \nDo you want to create an account (y/n)?")
     if choice then
         if Drive.isDiskPresent() then
-            username = CreateBankAccount()
+            user = CreateBankAccount()
         else
             print("Disk in not connected!")
             sleep(1)
@@ -144,38 +148,39 @@ function AccountCreationDialog ()
     else
         Drive.ejectDisk()
     end
-    return username
+    return user
 end
 
 function ReadDisk ()
     -- This function reads the username of the connected disk.
     -- If the disk is not associated with the bank, it will suggest the user ti create an account.
-    local username
+    local user
     if not fs.exists(Drive.getMountPath() .. "/bank") then
         fs.makeDir(Drive.getMountPath() .. "/bank")
     end
     if not fs.exists(GetAccountFilePath()) then
-        username = AccountCreationDialog()
+        user = AccountCreationDialog()
     else
-        username = ReadAccountFromDisk()
+        user = ReadAccountFromDisk()
     end
-    return username
+    return user
 end
 
-function ShowAccountHub (username)
-    WriteToScreen("both", string.format("Welcome back, %s \nPress enter to continue!", username), true)
+function ShowAccountHub (user)
+    local text = string.format("Welcome back, %s \nAccount balance: %d$", user["username"], user["credits"])
+    WriteToScreen("both", text, true)
     io.input()
 end
 
 function Mainloop ()
-    local username
+    local user
     WaitForDiskInsert()
-    username = ReadDisk()
-    if username == nil then
-        username = AccountCreationDialog()
+    user = ReadDisk()
+    if user == nil then
+        user = AccountCreationDialog()
     end
-    if username ~= nil then
-        ShowAccountHub(username)
+    if user ~= nil then
+        ShowAccountHub(user)
     end
 end
 
